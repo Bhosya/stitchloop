@@ -38,28 +38,18 @@ const SustainabilityStats = () => {
               key={stat.id}
               className="bg-[#FAF7F2] px-4 py-5 shadow rounded-lg overflow-hidden sm:p-6 transform hover:scale-105 transition-transform duration-200"
             >
-              <div className="w-full aspect-square rounded-md overflow-hidden">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover object-center lg:w-full lg:h-full hover:scale-110 transition-all duration-500"
-                />
-              </div>
-              <div className="mt-4 flex justify-between">
-                <div>
-                  <h3 className="text-sm text-[#5C4033] hover:underline">
-                    {product.name}
-                  </h3>
-                  <p className="mt-1 text-sm text-[#666666]">
-                    ${product.price.toFixed(2)}
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <stat.icon className="h-8 w-8 text-[#8B4513]" />
+                </div>
+                <div className="ml-5">
+                  <p className="text-sm font-medium text-[#666666]">
+                    {stat.name}
+                  </p>
+                  <p className="text-2xl font-semibold text-[#8B4513]">
+                    {stat.value}
                   </p>
                 </div>
-                <button
-                  onClick={(e) => handleAddToWishlist(e, product.id)}
-                  className="text-[#8B4513] hover:text-[#5C4033] transition-colors"
-                >
-                  <Heart className="h-5 w-5" />
-                </button>
               </div>
             </div>
           ))}
