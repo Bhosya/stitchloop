@@ -53,17 +53,17 @@ const FeaturedProducts = () => {
                 </div>
                 <div className="mt-4 flex justify-between">
                   <div>
-                    <h3 className="text-sm text-[#5C4033] hover:underline">
-                      {product.name}
+                    <h3 className="text-sm text-[#5C4033]">
+                      <a href="#">
+                        <span aria-hidden="true" className="absolute inset-0" />
+                        {product.name}
+                      </a>
                     </h3>
                     <p className="mt-1 text-sm text-[#666666]">
-                      ${product.price.toFixed(2)}
+                      {product.price}
                     </p>
                   </div>
-                  <button
-                    onClick={(e) => handleAddToWishlist(e, product.id)}
-                    className="text-[#8B4513] hover:text-[#5C4033] transition-colors"
-                  >
+                  <button className="text-[#8B4513] hover:text-[#5C4033]">
                     <Heart className="h-5 w-5" />
                   </button>
                 </div>
