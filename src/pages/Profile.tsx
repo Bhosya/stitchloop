@@ -1,7 +1,5 @@
-import React from 'react';
 import { Settings, ShoppingBag, Heart, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -63,13 +61,6 @@ const Profile = () => {
                 <span className="text-sm text-[#666666]">1 week ago</span>
               </div>
             </div>
-            <button
-            onClick={() => navigate('/login')}
-            className="flex items-center px-4 py-2 bg-[#8B4513] text-white rounded-md hover:bg-[#5C4033] transition-colors"
-          >
-            <LogOut className="h-5 w-5 mr-2" />
-            Logout
-          </button>
           </div>
         </div>
       </div>

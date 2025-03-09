@@ -1,4 +1,3 @@
-import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -16,8 +15,7 @@ import Search from './pages/Search';
 import ProductDetails from './pages/ProductDetails';
 import Checkout from './pages/Checkout';
 import CustomerService from './pages/CustomerService';
-import Login from './pages/Auth/Login';
-import Register from './pages/Auth/Register';
+import VirtualTryOn from './pages/VirtualTryOn';
 import Footer from './components/Footer';
 
 function App() {
@@ -41,8 +39,7 @@ function App() {
           <Route path="/search" element={<Search />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/customer-service" element={<CustomerService />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/virtual-try-on" element={<VirtualTryOn />} />
         </Routes>
       </main>
       <Footer />

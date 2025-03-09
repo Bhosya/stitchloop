@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingBag, Menu, X, Search, Heart, User } from 'lucide-react';
 
@@ -50,6 +50,16 @@ const Navbar = () => {
               }`}
             >
               Exchange
+            </Link>
+            <Link 
+              to="/virtual-try-on" 
+              className={`transition-colors ${
+                isActive('/virtual-try-on') 
+                  ? 'text-[#8B4513] font-semibold' 
+                  : 'text-[#5C4033] hover:text-[#8B4513]'
+              }`}
+            >
+              Try-On
             </Link>
             <Link 
               to="/blog" 
@@ -202,17 +212,6 @@ const Navbar = () => {
               }`}
             >
               Profile
-            </Link>
-            <Link 
-              to="/login" 
-              className={`flex items-center px-3 py-2 rounded-md ${
-                isActive('/login')
-                  ? 'bg-[#8B4513] text-white font-semibold'
-                  : 'bg-[#8B4513] text-white hover:bg-[#5C4033]'
-              }`}
-            >
-              <LogIn className="h-5 w-5 mr-2" />
-              Login
             </Link>
           </div>
         </div>
