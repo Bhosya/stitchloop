@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Camera, Upload, RefreshCw, Download, X } from "lucide-react";
-import axios from "axios";
+import { Camera, Upload, RefreshCw, X } from "lucide-react";
+import { Client } from "@gradio/client";
 
 interface ClothingItem {
   id: number;
@@ -14,33 +14,29 @@ interface ClothingItem {
 const clothingItems: ClothingItem[] = [
   {
     id: 1,
-    name: "Vintage Denim Jacket",
-    image:
-      "https://images.unsplash.com/photo-1544441893-675973e31985?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80",
+    name: "Shirt",
+    image: "https://images.unsplash.com/photo-1581655353564-df123a1eb820",
     category: "Outerwear",
     price: 45.0,
   },
   {
     id: 2,
     name: "Classic White Blouse",
-    image:
-      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?ixlib=rb-4.0.3&auto=format&fit=crop&w=962&q=80",
+    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f",
     category: "Tops",
     price: 35.0,
   },
   {
     id: 3,
     name: "Floral Summer Dress",
-    image:
-      "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1746&q=80",
+    image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea",
     category: "Dresses",
     price: 65.0,
   },
   {
     id: 4,
     name: "Linen Blazer",
-    image:
-      "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?ixlib=rb-4.0.3&auto=format&fit=crop&w=1736&q=80",
+    image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27",
     category: "Outerwear",
     price: 85.0,
   },
@@ -51,67 +47,65 @@ const VirtualTryOn = () => {
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [resultImage, setResultImage] = useState<string | null>(null);
+  const [userFile, setUserFile] = useState<File | null>(null);
+  const [processedImage, setProcessedImage] = useState(null);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  // Fungsi untuk menangani upload gambar user
+  const onDropUser = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setUserImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      setUserFile(file);
+      setUserImage(URL.createObjectURL(file));
     }
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "image/*": [".jpeg", ".jpg", ".png"],
-    },
+    onDrop: onDropUser,
+    accept: { "image/*": [".jpeg", ".jpg", ".png"] },
     maxFiles: 1,
   });
 
   const handleTryOn = async () => {
-    if (!userImage || !selectedItem) return;
-    
-    setIsProcessing(true);
-  
+    if (!selectedItem?.image) {
+      alert("Masukkan URL gambar terlebih dahulu!");
+      return;
+    }
+    setIsProcessing(true)
+
     try {
-      const formData = new FormData();
-      formData.append("image", userImage); // Foto user yang diunggah
-      formData.append("clothing", selectedItem.image); // URL gambar pakaian yang dipilih
-  
-      const response = await axios.post("https://api.tryonlabs.ai/generate", formData, {
-        headers: {
-          "Authorization": `Bearer ${import.meta.env.TOKEN_KEY}`,
-          "Content-Type": "multipart/form-data"
-        }
+      // Koneksi ke Gradio API
+      const client = await Client.connect("Alaiy/try-on");
+
+      // Load gambar dari URL
+      const loadResponse = await client.predict("/load_image_from_url", {
+        image_url: selectedItem?.image,
       });
-  
-      setResultImage(response.data.resultImage); // Menyimpan hasil gambar ke state
+
+      console.log("Load Image Response:", loadResponse.data[0]);
+
+      // Display hasil gambar
+      const displayResponse = await client.predict("/display_image", {
+        image: loadResponse.data[0],
+        image_url: selectedItem?.image,
+      });
+
+      console.log("Display Image Response:", displayResponse.data[0]);
+
+      // Update gambar hasil
+      setProcessedImage(displayResponse.data[0].path);
     } catch (error) {
       console.error("Error processing image:", error);
-      alert("Failed to generate try-on image. Please try again.");
+      alert("Gagal memproses gambar!");
     }
-  
-    setIsProcessing(false);
-  };  
+
+    setIsProcessing(false)
+  };
 
   const handleReset = () => {
     setUserImage(null);
+    setUserFile(null);
     setSelectedItem(null);
     setResultImage(null);
-  };
-
-  const handleDownload = () => {
-    if (resultImage) {
-      const link = document.createElement("a");
-      link.href = resultImage;
-      link.download = "virtual-try-on.jpg";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
   };
 
   return (
@@ -158,20 +152,14 @@ const VirtualTryOn = () => {
             </div>
           )}
 
-          {resultImage && (
+          {processedImage && (
             <div className="relative">
               <img
-                src={resultImage}
+                src={processedImage}
                 alt="Try-on result"
                 className="w-full h-[500px] object-cover rounded-lg"
               />
               <div className="absolute bottom-4 right-4 flex space-x-2">
-                <button
-                  onClick={handleDownload}
-                  className="p-3 bg-white rounded-full shadow-md hover:bg-[#E2D5C3] transition-colors"
-                >
-                  <Download className="h-5 w-5 text-[#8B4513]" />
-                </button>
                 <button
                   onClick={handleReset}
                   className="p-3 bg-white rounded-full shadow-md hover:bg-[#E2D5C3] transition-colors"
