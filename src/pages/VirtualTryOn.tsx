@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Camera, Upload, RefreshCw, X } from "lucide-react";
-import { Client } from "@gradio/client";
+import { Client, handle_file } from "@gradio/client";
 
 interface ClothingItem {
   id: number;
@@ -46,11 +46,10 @@ const VirtualTryOn = () => {
   const [userImage, setUserImage] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<ClothingItem | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [resultImage, setResultImage] = useState<string | null>(null);
+  const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [userFile, setUserFile] = useState<File | null>(null);
-  const [processedImage, setProcessedImage] = useState(null);
 
-  // Fungsi untuk menangani upload gambar user
+  // Handle upload gambar
   const onDropUser = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (file) {
@@ -66,46 +65,39 @@ const VirtualTryOn = () => {
   });
 
   const handleTryOn = async () => {
-    if (!selectedItem?.image) {
-      alert("Masukkan URL gambar terlebih dahulu!");
+    if (!userFile || !selectedItem) {
+      alert("Silakan unggah foto dan pilih pakaian terlebih dahulu!");
       return;
     }
-    setIsProcessing(true)
+
+    setIsProcessing(true);
 
     try {
-      // Koneksi ke Gradio API
       const client = await Client.connect("Alaiy/try-on");
 
-      // Load gambar dari URL
-      const loadResponse = await client.predict("/load_image_from_url", {
-        image_url: selectedItem?.image,
+      await client.predict("/load_image_from_url", {
+        image_url: selectedItem.image,
       });
 
-      console.log("Load Image Response:", loadResponse.data[0]);
-
-      // Display hasil gambar
       const displayResponse = await client.predict("/display_image", {
-        image: loadResponse.data[0],
-        image_url: selectedItem?.image,
+        image: handle_file(userFile),
+        image_url: selectedItem.image,
       });
 
-      console.log("Display Image Response:", displayResponse.data[0]);
-
-      // Update gambar hasil
-      setProcessedImage(displayResponse.data[0].path);
+      setProcessedImage(displayResponse.data[0].url);
     } catch (error) {
-      console.error("Error processing image:", error);
-      alert("Gagal memproses gambar!");
+      console.error("Gagal memproses gambar:", error);
+      alert("Terjadi kesalahan saat mencoba pakaian!");
     }
 
-    setIsProcessing(false)
+    setIsProcessing(false);
   };
 
   const handleReset = () => {
     setUserImage(null);
     setUserFile(null);
     setSelectedItem(null);
-    setResultImage(null);
+    setProcessedImage(null);
   };
 
   return (
@@ -115,8 +107,23 @@ const VirtualTryOn = () => {
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column - Image Upload & Result */}
+        {/* Kolom Kiri - Upload & Hasil */}
         <div className="space-y-6">
+          {processedImage && (
+            <div className="relative">
+              <img
+                src={processedImage}
+                alt="Try-on result"
+                className="w-full rounded-lg"
+              />
+              <button
+                onClick={handleReset}
+                className="absolute top-4 right-4 p-3 bg-white rounded-full shadow-md hover:bg-[#E2D5C3] transition-colors"
+              >
+                <RefreshCw className="h-5 w-5 text-[#8B4513]" />
+              </button>
+            </div>
+          )}
           {!userImage ? (
             <div
               {...getRootProps()}
@@ -140,8 +147,8 @@ const VirtualTryOn = () => {
             <div className="relative">
               <img
                 src={userImage}
-                alt="Your photo"
-                className="w-full h-[500px] object-cover rounded-lg"
+                alt="User uploaded"
+                className="w-full object-cover rounded-lg"
               />
               <button
                 onClick={() => setUserImage(null)}
@@ -151,27 +158,9 @@ const VirtualTryOn = () => {
               </button>
             </div>
           )}
-
-          {processedImage && (
-            <div className="relative">
-              <img
-                src={processedImage}
-                alt="Try-on result"
-                className="w-full h-[500px] object-cover rounded-lg"
-              />
-              <div className="absolute bottom-4 right-4 flex space-x-2">
-                <button
-                  onClick={handleReset}
-                  className="p-3 bg-white rounded-full shadow-md hover:bg-[#E2D5C3] transition-colors"
-                >
-                  <RefreshCw className="h-5 w-5 text-[#8B4513]" />
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Right Column - Clothing Selection */}
+        {/* Kolom Kanan - Pilih Outfit */}
         <div>
           <h2 className="text-2xl font-serif font-semibold text-[#8B4513] mb-6">
             Select an Outfit
@@ -212,16 +201,11 @@ const VirtualTryOn = () => {
               }`}
           >
             {isProcessing ? (
-              <>
-                <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
-                Processing...
-              </>
+              <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
             ) : (
-              <>
-                <Upload className="h-5 w-5 mr-2" />
-                Try It On
-              </>
+              <Upload className="h-5 w-5 mr-2" />
             )}
+            {isProcessing ? "Processing..." : "Try It On"}
           </button>
         </div>
       </div>
