@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { ShoppingBag, Menu, X, Search, Heart, User } from "lucide-react";
+import Chatbot from "./ChatBot";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -231,6 +232,7 @@ const Navbar = () => {
           </div>
         </div>
       )}
+      <Chatbot />
     </nav>
   );
 };
